@@ -5,6 +5,11 @@ import { SceneInit } from "./utils/SceneInit.module";
 import "./style.css";
 
 document.getElementById("mic").addEventListener("click", () => {
+	navigator.getUserMedia =
+		navigator.getUserMedia ||
+		navigator.webkitGetUserMedia ||
+		navigator.mozGetUserMedia;
+
 	navigator.getUserMedia({ video: false, audio: true }, micData, console.log);
 });
 
