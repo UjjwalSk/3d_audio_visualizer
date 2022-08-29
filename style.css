@@ -4,16 +4,11 @@ body{
 
 section {
   position: fixed;
-  margin-top: 91vh;
+  margin-top: 87vh;
 }
 
 button{
-  position: absolute;
-  width: 35%;
-  margin-top:10px;
-  margin-left:20px;
-  cursor: pointer;
-  text-align: center;
-  font-size: 20px;
-  border-radius: 10px;
+  font-size: 16px;
+  border-radius: 20px;
+  width: 40%;
 }

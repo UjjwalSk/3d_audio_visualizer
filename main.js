@@ -4,6 +4,7 @@ import { GUI } from "dat.gui";
 import { SceneInit } from "./utils/SceneInit.module";
 import "./style.css";
 
+var flag = 0;
 document.getElementById("mic").addEventListener("click", () => {
 	navigator.getUserMedia =
 		navigator.getUserMedia ||
@@ -12,6 +13,8 @@ document.getElementById("mic").addEventListener("click", () => {
 
 	navigator.getUserMedia({ video: false, audio: true }, micData, console.log);
 });
+
+document.getElementById("Stopmic").addEventListener("click", Stopmic);
 
 const screen = new SceneInit();
 screen.initScene();
@@ -46,11 +49,14 @@ function generateGeometry() {
 	);
 }
 
-var analyser,
+var micAnalyser,
+	audioAnalyser,
 	dataArray = new Uint8Array(),
 	audioContext,
+	micContext,
 	audioElement = document.getElementById("myAudio"),
-	source,
+	audioSource,
+	micSource,
 	uniforms = {
 		u_time: {
 			type: "f",
@@ -103,25 +109,32 @@ plane.geometry.verticesNeedUpdate = true;
 screen.scene.add(plane);
 
 function micData(stream) {
-	audioContext = new AudioContext();
-	// audioContext.createMediaElementSource(undefined);
-	source = audioContext.createMediaStreamSource(stream);
-	analyser = audioContext.createAnalyser();
-	console.log("recording");
-	source.connect(analyser);
-	dataArray = new Uint8Array(analyser.frequencyBinCount);
+	flag = 1;
+	micContext = new AudioContext();
+	micSource = micContext.createMediaStreamSource(stream);
+	micAnalyser = micContext.createAnalyser();
+	micSource.connect(micAnalyser);
+	dataArray = new Uint8Array(micAnalyser.frequencyBinCount);
 	plane.material.uniforms.u_data_arr.value = dataArray;
 }
 
+function Stopmic() {
+	flag = 0;
+	micContext.suspend();
+}
+
 function generate() {
+	flag = 0;
+	if (audioContext) {
+		return;
+	}
 	audioContext = new AudioContext();
-	// audioContext.createMediaStreamSource(undefined);
-	source = audioContext.createMediaElementSource(audioElement);
-	analyser = audioContext.createAnalyser();
-	source.connect(analyser);
-	analyser.connect(audioContext.destination);
-	analyser.fftSize = 1024;
-	dataArray = new Uint8Array(analyser.frequencyBinCount);
+	audioSource = audioContext.createMediaElementSource(audioElement);
+	audioAnalyser = audioContext.createAnalyser();
+	audioSource.connect(audioAnalyser);
+	audioAnalyser.connect(audioContext.destination);
+	audioAnalyser.fftSize = 1024;
+	dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
 	plane.material.uniforms.u_data_arr.value = dataArray;
 }
 
@@ -148,13 +161,15 @@ folder.add(data, "wireframe").onChange(function (e) {
 generateGeometry();
 
 const render = (time) => {
-	if (analyser) {
-		uniforms.u_time.value = time;
+	uniforms.u_time.value = time;
+	if (micAnalyser && flag == 1) {
 		uniforms.u_data_arr.value = dataArray;
-		analyser.getByteFrequencyData(dataArray);
+		micAnalyser.getByteFrequencyData(dataArray);
+	} else if (audioAnalyser) {
+		audioAnalyser.getByteFrequencyData(dataArray);
 	}
+
 	screen.controls.update();
-	// console.log(dataArray);
 	screen.renderer.render(screen.scene, screen.camera);
 
 	requestAnimationFrame(render);
