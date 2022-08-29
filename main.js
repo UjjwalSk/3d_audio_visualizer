@@ -5,6 +5,7 @@ import { SceneInit } from "./utils/SceneInit.module";
 import "./style.css";
 
 var flag = 0;
+
 document.getElementById("mic").addEventListener("click", () => {
 	navigator.getUserMedia =
 		navigator.getUserMedia ||
@@ -71,6 +72,17 @@ var micAnalyser,
 			value: dataArray,
 		},
 	};
+
+// Audio File Input
+
+var file = document.getElementById("thefile");
+
+file.onchange = function () {
+	var files = this.files;
+	audioElement.src = URL.createObjectURL(files[0]);
+	audioElement.load();
+	audioElement.play();
+};
 
 // Audio
 audioElement = document.getElementById("myAudio");
@@ -141,10 +153,10 @@ function generate() {
 const gui = new GUI();
 const folder = gui.addFolder("THREE.PlaneGeometry");
 
-folder.add(data, "width", 1, 200).onChange(generateGeometry);
-folder.add(data, "height", 1, 200).onChange(generateGeometry);
-folder.add(data, "widthSegments", 1, 500).step(1).onChange(generateGeometry);
-folder.add(data, "heightSegments", 1, 500).step(1).onChange(generateGeometry);
+folder.add(data, "width", 1, 512).onChange(generateGeometry);
+folder.add(data, "height", 1, 512).onChange(generateGeometry);
+folder.add(data, "widthSegments", 1, 512).step(1).onChange(generateGeometry);
+folder.add(data, "heightSegments", 1, 512).step(1).onChange(generateGeometry);
 folder.add(data, "x", 1, 100).onChange(function (e) {
 	screen.scene.scale.x = data.x;
 });
@@ -155,7 +167,7 @@ folder.add(data, "z", 1, 100).onChange(function (e) {
 	screen.scene.scale.z = data.z;
 });
 folder.add(data, "wireframe").onChange(function (e) {
-	screen.scene.material.wireframe = e;
+	screen.scene.children[0].material.wireframe = e;
 });
 
 generateGeometry();
